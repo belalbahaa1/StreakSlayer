@@ -7,6 +7,7 @@ import ChallengesTab from "./components/ChallengesTab";
 import StatsTab from "./components/StatsTab";
 import BadgesTab from "./components/BadgesTab";
 import SettingsTab from "./components/SettingsTab";
+import { Analytics } from "@vercel/analytics/react";
 
 import {
   DEFAULT_TASKS,
@@ -318,6 +319,7 @@ export default function App() {
     <div
       className={`min-h-screen ${th.bg} ${th.text} font-sans transition-colors duration-300`}
     >
+      <Analytics />
       <Confetti active={confetti} />
       <Popups popup={popup} setPopup={setPopup} th={th} />
       <Header
