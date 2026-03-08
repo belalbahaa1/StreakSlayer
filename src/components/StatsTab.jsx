@@ -121,6 +121,8 @@ export default function StatsTab({
             label: "Badges",
             val: `${stats.earnedBadges.length}/${BADGES.length}`,
           },
+          { icon: "❌", label: "Tasks Missed", val: stats.missedTasks || 0 },
+          { icon: "📉", label: "XP Lost", val: stats.xpLost || 0 },
         ].map((s) => (
           <div
             key={s.label}

@@ -167,6 +167,30 @@ export const DAILY_CHALLENGES = [
     xp: 100,
     type: "all_tasks",
   },
+  {
+    label: "Morning Person: Complete all morning tasks",
+    icon: "🌅",
+    xp: 50,
+    type: "morning_all",
+  },
+  {
+    label: "Night Owl: Complete all evening tasks",
+    icon: "🦉",
+    xp: 50,
+    type: "evening_all",
+  },
+  {
+    label: "Grinder: Complete 8 tasks today",
+    icon: "⚔️",
+    xp: 75,
+    type: "total_8",
+  },
+  {
+    label: "Hard Worker: Complete 2 Hard tasks",
+    icon: "🔥",
+    xp: 80,
+    type: "hard_2",
+  },
 ];
 
 export const QUOTES = [
@@ -181,6 +205,15 @@ export const QUOTES = [
 ];
 
 export const THEMES = {
+  light: {
+    bg: "bg-gray-50",
+    card: "bg-white",
+    inner: "bg-gray-100",
+    border: "border-gray-200",
+    text: "text-gray-900",
+    sub: "text-gray-500",
+    name: "Light",
+  },
   dark: {
     bg: "bg-gray-950",
     card: "bg-gray-900",
@@ -216,6 +249,15 @@ export const THEMES = {
     text: "text-white",
     sub: "text-indigo-300",
     name: "Space",
+  },
+  purple: {
+    bg: "bg-purple-950",
+    card: "bg-purple-900",
+    inner: "bg-purple-800",
+    border: "border-purple-700",
+    text: "text-white",
+    sub: "text-purple-300",
+    name: "Purple",
   },
 };
 

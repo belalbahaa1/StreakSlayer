@@ -8,7 +8,7 @@ export default function BadgesTab({ th, stats }) {
         return (
           <div
             key={b.id}
-            className={`rounded-2xl p-5 text-center border transition-all duration-500 scale-100 hover:scale-105 active:scale-95 group ${earned ? `glass border-yellow-500/40 shadow-lg shadow-yellow-500/10` : `bg-white/5 border-white/5 opacity-40 grayscale`}`}
+            className={`rounded-2xl p-5 text-center border transition-all duration-500 scale-100 hover:scale-105 active:scale-95 group ${earned ? `glass border-yellow-500/40 shadow-lg shadow-yellow-500/10` : `${th.inner} ${th.border} opacity-50 grayscale`}`}
           >
             <div
               className={`text-5xl mb-3 transition-transform duration-500 ${earned ? "group-hover:rotate-12" : ""}`}

@@ -87,6 +87,20 @@ export default function Popups({ popup, setPopup, th }) {
           </span>
         </div>
       )}
+      {popup.type === "perfect_day" && (
+        <div className="fixed top-1/4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none animate-bounce">
+          <div className="bg-linear-to-r from-yellow-400 to-orange-500 text-white font-black px-8 py-4 rounded-3xl shadow-2xl text-center border-4 border-white/20">
+            <div className="text-4xl mb-2">🌟</div>
+            <div className="text-2xl tracking-widest uppercase mb-1">
+              Perfect Day!
+            </div>
+            <div className="text-sm opacity-90">All tasks completed</div>
+            <div className="mt-2 bg-white/20 rounded-full px-4 py-1 text-sm inline-block">
+              Streak: 🔥 {popup.streak} Day{popup.streak !== 1 ? "s" : ""}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

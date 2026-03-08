@@ -1,6 +1,13 @@
 import { THEMES } from "../Data";
 
-export default function SettingsTab({ th, theme, setTheme, onReset }) {
+export default function SettingsTab({
+  th,
+  theme,
+  setTheme,
+  notificationsEnabled,
+  toggleNotifications,
+  onReset,
+}) {
   return (
     <div className="mt-3 space-y-3">
       <div
@@ -22,7 +29,28 @@ export default function SettingsTab({ th, theme, setTheme, onReset }) {
         </div>
       </div>
       <div
-        className={`glass-dark rounded-2xl p-5 border ${th.border} shadow-premium bg-red-950/20`}
+        className={`glass-dark rounded-2xl p-5 border ${th.border} shadow-premium`}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-display font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+            <span>🔔</span> Notifications
+          </h3>
+          <button
+            onClick={toggleNotifications}
+            className={`w-12 h-6 rounded-full transition-colors flex items-center px-1 ${notificationsEnabled ? "bg-emerald-500" : "bg-white/10"}`}
+          >
+            <div
+              className={`w-4 h-4 rounded-full bg-white transition-transform ${notificationsEnabled ? "translate-x-6" : "translate-x-0"}`}
+            />
+          </button>
+        </div>
+        <p className={`${th.sub} text-[10px] font-medium leading-relaxed`}>
+          Receive a reminder 1 hour before midnight if you have uncompleted
+          daily tasks or challenges.
+        </p>
+      </div>
+      <div
+        className={`glass-dark rounded-2xl p-5 border ${th.border} shadow-premium bg-red-500/10`}
       >
         <h3 className="font-display font-bold text-sm mb-2 uppercase tracking-wider flex items-center gap-2 text-red-400">
           <span>⚠️</span> Danger Zone
@@ -32,15 +60,7 @@ export default function SettingsTab({ th, theme, setTheme, onReset }) {
           statistics. This cannot be undone.
         </p>
         <button
-          onClick={() => {
-            if (
-              window.confirm(
-                "Are you sure you want to reset everything? Your progress will be lost forever.",
-              )
-            ) {
-              onReset();
-            }
-          }}
+          onClick={onReset}
           className="w-full btn-premium bg-linear-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 py-3 rounded-xl text-sm font-display font-bold shadow-lg shadow-red-500/20"
         >
           Reset All Data
