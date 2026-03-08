@@ -1,4 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useRef } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { AppProvider } from "./context/AppProvider";
 import { useAppContext } from "./context/AppContext";
 import Header from "./components/Header";
@@ -34,9 +41,43 @@ function AppLayout() {
   const total = todaysTasks.length;
   const dayPct = total ? Math.round((completed / total) * 100) : 0;
 
+  // Swipe logic
+  const location = useLocation();
+  const navigate = useNavigate();
+  const touchStartX = useRef(null);
+  const ROUTES = ["/", "/challenges", "/stats", "/badges", "/settings"];
+
+  const onTouchStart = (e) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const distance = touchStartX.current - touchEndX;
+
+    const minSwipeDistance = 50;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe || isRightSwipe) {
+      const currentIndex = ROUTES.indexOf(location.pathname);
+      if (currentIndex === -1) return;
+
+      if (isLeftSwipe && currentIndex < ROUTES.length - 1) {
+        navigate(ROUTES[currentIndex + 1]);
+      } else if (isRightSwipe && currentIndex > 0) {
+        navigate(ROUTES[currentIndex - 1]);
+      }
+    }
+    touchStartX.current = null;
+  };
+
   return (
     <div
-      className={`min-h-screen ${th.bg} ${th.text} font-sans transition-colors duration-300 theme-${th.name.toLowerCase()}`}
+      className={`min-h-screen ${th.bg} ${th.text} font-sans transition-colors duration-300 theme-${th.name.toLowerCase()} overflow-x-hidden`}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       <Analytics />
       <Confetti active={confetti} />
