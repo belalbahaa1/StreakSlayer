@@ -131,6 +131,34 @@ export const AppProvider = ({ children }) => {
     }
   }, [stats.totalXP, currentLvl]);
 
+  const sendNotification = useCallback(
+    (title, options = {}) => {
+      if (!notificationsEnabled || Notification.permission !== "granted")
+        return;
+
+      const defaultOptions = {
+        icon: "/favicon.png",
+        badge: "/favicon.png",
+        vibrate: [200, 100, 200],
+        ...options,
+      };
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.ready
+          .then((registration) => {
+            registration.showNotification(title, defaultOptions);
+          })
+          .catch((err) => {
+            console.error("SW notification failed, falling back", err);
+            new Notification(title, defaultOptions);
+          });
+      } else {
+        new Notification(title, defaultOptions);
+      }
+    },
+    [notificationsEnabled],
+  );
+
   // Notifications
   useEffect(() => {
     if (!notificationsEnabled || Notification.permission !== "granted") return;
@@ -147,9 +175,8 @@ export const AppProvider = ({ children }) => {
           const uncompletedChallenges = daily.challengesDone.filter((d) => !d);
 
           if (uncompletedTasks.length > 0 || uncompletedChallenges.length > 0) {
-            new Notification("StreakSlayer Reminder", {
+            sendNotification("StreakSlayer Reminder", {
               body: `Only 1 hour left! You have ${uncompletedTasks.length} task(s) and ${uncompletedChallenges.length} challenge(s) left to save your streak! ⏳`,
-              icon: "/favicon.png",
             });
             localStorage.setItem("dr_last_reminder", today);
           }
@@ -158,7 +185,14 @@ export const AppProvider = ({ children }) => {
     };
 
     checkReminder();
-  }, [today, notificationsEnabled, tasks, todayIdx, daily.challengesDone]);
+  }, [
+    today,
+    notificationsEnabled,
+    tasks,
+    todayIdx,
+    daily.challengesDone,
+    sendNotification,
+  ]);
 
   // Background Task Reminder Worker
   useEffect(() => {
@@ -177,9 +211,8 @@ export const AppProvider = ({ children }) => {
           // Check if we already notified for this task this minute
           const reminderKey = `reminder_${task.id}_${today}_${currentHHmm}`;
           if (!localStorage.getItem(reminderKey)) {
-            new Notification(`Task Reminder: ${task.label}`, {
+            sendNotification(`Task Reminder: ${task.label}`, {
               body: `It's ${task.time}! Time to get it done. 💪`,
-              icon: "/favicon.png",
               requireInteraction: true,
             });
             toast.success(`Task Reminder: ${task.label}`, {
@@ -201,7 +234,7 @@ export const AppProvider = ({ children }) => {
     checkReminders();
     const i = setInterval(checkReminders, 60000);
     return () => clearInterval(i);
-  }, [notificationsEnabled, tasks, todayIdx, today]);
+  }, [notificationsEnabled, tasks, todayIdx, today, sendNotification]);
 
   // Nightly Reset Logic
   const resetLock = useRef(false);
@@ -276,7 +309,7 @@ export const AppProvider = ({ children }) => {
         resetLock.current = false;
       }
     }
-  }, [today, daily.date]);
+  }, [today, daily.date, stats.streak]);
 
   const checkChallenge = useCallback(
     (updatedTasks) => {
@@ -436,9 +469,8 @@ export const AppProvider = ({ children }) => {
     }
 
     if (Notification.permission === "granted") {
-      new Notification("StreakSlayer Test", {
+      sendNotification("StreakSlayer Test", {
         body: "Native notifications are working!",
-        icon: "/favicon.png",
       });
       toast.success("Awesome! Notifications are active.", {
         style: {
@@ -451,9 +483,8 @@ export const AppProvider = ({ children }) => {
     } else {
       Notification.requestPermission().then((permission) => {
         if (permission === "granted") {
-          new Notification("StreakSlayer Test", {
+          sendNotification("StreakSlayer Test", {
             body: "Permission granted! Notifications are now active.",
-            icon: "/favicon.png",
           });
           toast.success("Permission granted!", {
             style: {
@@ -469,7 +500,7 @@ export const AppProvider = ({ children }) => {
         }
       });
     }
-  }, []);
+  }, [sendNotification]);
 
   const simulateReminder = useCallback(() => {
     const uncompletedTasks = tasks.filter(
@@ -478,9 +509,8 @@ export const AppProvider = ({ children }) => {
     const uncompletedChallenges = daily.challengesDone.filter((d) => !d);
 
     if (uncompletedTasks.length > 0 || uncompletedChallenges.length > 0) {
-      new Notification("StreakSlayer Simulate", {
+      sendNotification("StreakSlayer Simulate", {
         body: `You have ${uncompletedTasks.length} task(s) and ${uncompletedChallenges.length} challenge(s) left! ⏳`,
-        icon: "/favicon.png",
         requireInteraction: true,
       });
       toast(`Simulated Reminder: ${uncompletedTasks.length} tasks left`, {
@@ -502,7 +532,7 @@ export const AppProvider = ({ children }) => {
         },
       });
     }
-  }, [tasks, todayIdx, daily.challengesDone]);
+  }, [tasks, todayIdx, daily.challengesDone, sendNotification]);
 
   const value = {
     tasks,
