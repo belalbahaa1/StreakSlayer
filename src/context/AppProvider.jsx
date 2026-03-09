@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { toast } from "react-hot-toast";
 import { AppContext } from "./AppContext";
 import {
   DEFAULT_TASKS,
@@ -54,10 +55,7 @@ export const AppProvider = ({ children }) => {
   );
 
   const [stats, setStats] = useState(() => load("dr_stats2", initStats()));
-  const [daily, setDaily] = useState(() => {
-    const d = load("dr_daily2", initDaily());
-    return d.date === todayKey() ? d : initDaily();
-  });
+  const [daily, setDaily] = useState(() => load("dr_daily2", initDaily()));
 
   const [theme, setTheme] = useState(() => load("dr_theme", "dark"));
   const [notificationsEnabled, setNotificationsEnabled] = useState(() =>
@@ -143,12 +141,15 @@ export const AppProvider = ({ children }) => {
       if (now.getHours() === 23) {
         const lastSent = localStorage.getItem("dr_last_reminder");
         if (lastSent !== today) {
-          const uncompletedTasks = todaysTasks.filter((t) => !t.done);
+          const uncompletedTasks = tasks.filter(
+            (t) => isTaskForDay(t, todayIdx) && !t.done,
+          );
           const uncompletedChallenges = daily.challengesDone.filter((d) => !d);
 
           if (uncompletedTasks.length > 0 || uncompletedChallenges.length > 0) {
             new Notification("StreakSlayer Reminder", {
               body: `Only 1 hour left! You have ${uncompletedTasks.length} task(s) and ${uncompletedChallenges.length} challenge(s) left to save your streak! ⏳`,
+              icon: "/favicon.png",
             });
             localStorage.setItem("dr_last_reminder", today);
           }
@@ -157,14 +158,58 @@ export const AppProvider = ({ children }) => {
     };
 
     checkReminder();
-    const interval = setInterval(checkReminder, 60000); // Check every minute
-    return () => clearInterval(interval);
-  }, [today, notificationsEnabled, todaysTasks, daily.challengesDone]);
+  }, [today, notificationsEnabled, tasks, todayIdx, daily.challengesDone]);
+
+  // Background Task Reminder Worker
+  useEffect(() => {
+    if (!notificationsEnabled || Notification.permission !== "granted") return;
+
+    const checkReminders = () => {
+      const now = new Date();
+      const currentHHmm = now.toTimeString().slice(0, 5); // "HH:mm"
+
+      tasks.forEach((task) => {
+        if (
+          isTaskForDay(task, todayIdx) &&
+          !task.done &&
+          task.time === currentHHmm
+        ) {
+          // Check if we already notified for this task this minute
+          const reminderKey = `reminder_${task.id}_${today}_${currentHHmm}`;
+          if (!localStorage.getItem(reminderKey)) {
+            new Notification(`Task Reminder: ${task.label}`, {
+              body: `It's ${task.time}! Time to get it done. 💪`,
+              icon: "/favicon.png",
+              requireInteraction: true,
+            });
+            toast.success(`Task Reminder: ${task.label}`, {
+              duration: 10000,
+              icon: "🔔",
+              style: {
+                borderRadius: "16px",
+                background: "#1f2937",
+                color: "#fff",
+                border: "1px solid #374151",
+              },
+            });
+            localStorage.setItem(reminderKey, "sent");
+          }
+        }
+      });
+    };
+
+    checkReminders();
+    const i = setInterval(checkReminders, 60000);
+    return () => clearInterval(i);
+  }, [notificationsEnabled, tasks, todayIdx, today]);
 
   // Nightly Reset Logic
+  const resetLock = useRef(false);
+
   useEffect(() => {
-    if (daily.date !== today) {
-      setTimeout(() => {
+    if (daily.date !== today && !resetLock.current) {
+      resetLock.current = true;
+      try {
         const oldDateStr = daily.date;
         const oldDate = new Date(oldDateStr);
         const currentDate = new Date(today);
@@ -173,11 +218,17 @@ export const AppProvider = ({ children }) => {
         const diffDays = Math.round((currentDate - oldDate) / 86400000);
 
         const oldTodayIdx = oldDate.getDay();
-        const oldTasks = tasks.filter((t) => isTaskForDay(t, oldTodayIdx));
-        const missedTasks = oldTasks.filter((t) => !t.done);
-        const xpLoss = missedTasks.reduce((acc, t) => acc + (t.xp || 0), 0);
+        const oldTasksAcrossApp = JSON.parse(
+          localStorage.getItem("dr_tasks2") || "[]",
+        );
+        const oldTasksToday = oldTasksAcrossApp.filter((t) =>
+          isTaskForDay(t, oldTodayIdx),
+        );
+        const missedTasksList = oldTasksToday.filter((t) => !t.done);
+        const xpLoss = missedTasksList.reduce((acc, t) => acc + (t.xp || 0), 0);
 
-        const allDone = oldTasks.length > 0 && oldTasks.every((t) => t.done);
+        const allDone =
+          oldTasksToday.length > 0 && oldTasksToday.every((t) => t.done);
         const expectedNewStreak =
           diffDays === 1 ? (allDone ? stats.streak + 1 : 0) : 0;
 
@@ -185,14 +236,14 @@ export const AppProvider = ({ children }) => {
           const actualStreak =
             diffDays === 1 ? (allDone ? s.streak + 1 : 0) : 0;
           const hist = { ...(s.weekHistory || {}) };
-          hist[oldDateStr] = oldTasks.filter((t) => t.done).length;
+          hist[oldDateStr] = oldTasksToday.filter((t) => t.done).length;
           return {
             ...s,
             totalXP: Math.max(0, s.totalXP - xpLoss),
             streak: actualStreak,
             perfectDays: s.perfectDays + (allDone ? 1 : 0),
             weekHistory: hist,
-            missedTasks: (s.missedTasks || 0) + missedTasks.length,
+            missedTasks: (s.missedTasks || 0) + missedTasksList.length,
             xpLost: (s.xpLost || 0) + xpLoss,
           };
         });
@@ -205,17 +256,27 @@ export const AppProvider = ({ children }) => {
             setPopup(null);
           }, 4000);
         } else if (xpLoss > 0) {
-          setPopup({ type: "loss", xp: xpLoss });
-          setTimeout(() => setPopup(null), 4000);
+          toast.error(`Nightly Penalty: -${xpLoss} XP`, {
+            duration: 4000,
+            icon: "💀",
+            style: {
+              borderRadius: "16px",
+              background: "#1f2937",
+              color: "#fff",
+              border: "1px solid #374151",
+            },
+          });
         }
 
         setTasks((ts) => ts.map((t) => ({ ...t, done: false })));
         const newDaily = initDaily();
         newDaily.date = today;
         setDaily(newDaily);
-      }, 0);
+      } finally {
+        resetLock.current = false;
+      }
     }
-  }, [daily.date, tasks, today, stats.streak]);
+  }, [today, daily.date]);
 
   const checkChallenge = useCallback(
     (updatedTasks) => {
@@ -266,10 +327,18 @@ export const AppProvider = ({ children }) => {
           challengesDone: s.challengesDone + newStatsUpdates.chGain,
         }));
 
-        setPopup({ type: "challenge", ch: newlyCompleted[0] });
+        toast.success(`Challenge Complete: ${newlyCompleted[0].label}`, {
+          duration: 4000,
+          icon: "⭐",
+          style: {
+            borderRadius: "16px",
+            background: "#1f2937",
+            color: "#fff",
+            border: "1px solid #374151",
+          },
+        });
         setConfetti(true);
         setTimeout(() => {
-          setPopup(null);
           setConfetti(false);
         }, 3000);
       }
@@ -315,8 +384,15 @@ export const AppProvider = ({ children }) => {
           };
         });
 
-        setPopup({ type: "xp", xp: xpGain, label: task.label });
-        setTimeout(() => setPopup(null), 1600);
+        toast.success(`+${xpGain} XP: ${task.label}`, {
+          duration: 2000,
+          style: {
+            borderRadius: "16px",
+            background: "#1f2937",
+            color: "#fff",
+            border: "1px solid #374151",
+          },
+        });
         setTimeout(() => checkChallenge(updatedTasks), 50);
       } else {
         setStats((s) => ({
@@ -353,6 +429,81 @@ export const AppProvider = ({ children }) => {
     }
   }, [notificationsEnabled]);
 
+  const testNotification = useCallback(() => {
+    if (!("Notification" in window)) {
+      alert("This browser does not support desktop notifications.");
+      return;
+    }
+
+    if (Notification.permission === "granted") {
+      new Notification("StreakSlayer Test", {
+        body: "Native notifications are working!",
+        icon: "/favicon.png",
+      });
+      toast.success("Awesome! Notifications are active.", {
+        style: {
+          borderRadius: "16px",
+          background: "#1f2937",
+          color: "#fff",
+          border: "1px solid #374151",
+        },
+      });
+    } else {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          new Notification("StreakSlayer Test", {
+            body: "Permission granted! Notifications are now active.",
+            icon: "/favicon.png",
+          });
+          toast.success("Permission granted!", {
+            style: {
+              borderRadius: "16px",
+              background: "#1f2937",
+              color: "#fff",
+              border: "1px solid #374151",
+            },
+          });
+          setNotificationsEnabled(true);
+        } else {
+          toast.error("Notification permission denied!");
+        }
+      });
+    }
+  }, []);
+
+  const simulateReminder = useCallback(() => {
+    const uncompletedTasks = tasks.filter(
+      (t) => isTaskForDay(t, todayIdx) && !t.done,
+    );
+    const uncompletedChallenges = daily.challengesDone.filter((d) => !d);
+
+    if (uncompletedTasks.length > 0 || uncompletedChallenges.length > 0) {
+      new Notification("StreakSlayer Simulate", {
+        body: `You have ${uncompletedTasks.length} task(s) and ${uncompletedChallenges.length} challenge(s) left! ⏳`,
+        icon: "/favicon.png",
+        requireInteraction: true,
+      });
+      toast(`Simulated Reminder: ${uncompletedTasks.length} tasks left`, {
+        icon: "⏳",
+        style: {
+          borderRadius: "16px",
+          background: "#1f2937",
+          color: "#fff",
+          border: "1px solid #374151",
+        },
+      });
+    } else {
+      toast.success("Everything complete! No reminder needed. 🎉", {
+        style: {
+          borderRadius: "16px",
+          background: "#1f2937",
+          color: "#fff",
+          border: "1px solid #374151",
+        },
+      });
+    }
+  }, [tasks, todayIdx, daily.challengesDone]);
+
   const value = {
     tasks,
     setTasks,
@@ -375,6 +526,8 @@ export const AppProvider = ({ children }) => {
     resetAll,
     notificationsEnabled,
     toggleNotifications,
+    testNotification,
+    simulateReminder,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

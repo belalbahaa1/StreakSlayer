@@ -10,7 +10,7 @@ export const DEFAULT_TASKS = [
   {
     id: 2,
     label: "Afternoon Deep Work",
-    icon: "💻",
+    time: "14:00",
     xp: 35,
     category: "afternoon",
     difficulty: "medium",
@@ -18,7 +18,7 @@ export const DEFAULT_TASKS = [
   {
     id: 3,
     label: "Evening Screen Detox",
-    icon: "📵",
+    time: "21:30",
     xp: 50,
     category: "evening",
     difficulty: "hard",

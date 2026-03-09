@@ -7,7 +7,7 @@ export default function DashboardPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [newTask, setNewTask] = useState({
     label: "",
-    icon: "✅",
+    time: "08:00",
     category: "morning",
     difficulty: "medium",
   });
@@ -21,7 +21,7 @@ export default function DashboardPage() {
     ]);
     setNewTask({
       label: "",
-      icon: "✅",
+      time: "08:00",
       category: "morning",
       difficulty: "medium",
     });

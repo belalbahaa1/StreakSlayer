@@ -12,6 +12,7 @@ import Header from "./components/Header";
 import Popups from "./components/Popups";
 import Confetti from "./components/Confetti";
 import BottomNav from "./components/BottomNav";
+import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/react";
 import { getLevelInfo, xpPct, DAYS_FULL } from "./Data";
 
@@ -80,6 +81,7 @@ function AppLayout() {
       onTouchEnd={onTouchEnd}
     >
       <Analytics />
+      <Toaster position="top-center" reverseOrder={false} />
       <Confetti active={confetti} />
       <Popups popup={popup} setPopup={setPopup} th={th} />
       <Header

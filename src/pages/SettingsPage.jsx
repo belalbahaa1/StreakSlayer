@@ -9,6 +9,8 @@ export default function SettingsPage() {
     resetAll,
     notificationsEnabled,
     toggleNotifications,
+    testNotification,
+    simulateReminder,
   } = useAppContext();
 
   return (
@@ -19,6 +21,8 @@ export default function SettingsPage() {
         setTheme={setTheme}
         notificationsEnabled={notificationsEnabled}
         toggleNotifications={toggleNotifications}
+        testNotification={testNotification}
+        simulateReminder={simulateReminder}
         onReset={() => {
           if (
             window.confirm(

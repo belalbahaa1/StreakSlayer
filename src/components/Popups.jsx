@@ -5,23 +5,7 @@ export default function Popups({ popup, setPopup, th }) {
 
   return (
     <>
-      {popup.type === "xp" && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none">
-          <div className="bg-yellow-400 text-gray-900 font-bold px-5 py-2 rounded-full shadow-lg text-base animate-bounce">
-            +{popup.xp} XP
-          </div>
-        </div>
-      )}
-      {popup.type === "loss" && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none">
-          <div className="bg-red-600 text-white font-bold px-5 py-2 rounded-full shadow-lg text-base animate-bounce flex items-center gap-2">
-            <span>Penalty</span>
-            <span className="bg-white/20 px-2 py-0.5 rounded-lg">
-              -{popup.xp} XP
-            </span>
-          </div>
-        </div>
-      )}
+      {/* XP/Loss now handled by toasts */}
       {popup.type === "badge" && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
@@ -78,15 +62,7 @@ export default function Popups({ popup, setPopup, th }) {
           </div>
         </div>
       )}
-      {popup.type === "challenge" && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white font-bold px-5 py-3 rounded-2xl shadow-lg text-center max-w-xs animate-bounce">
-          🏆 Challenge Complete!
-          <br />
-          <span className="text-sm font-normal">
-            {popup.ch.label} +{popup.ch.xp} XP
-          </span>
-        </div>
-      )}
+      {/* Challenges now handled by toasts */}
       {popup.type === "perfect_day" && (
         <div className="fixed top-1/4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none animate-bounce">
           <div className="bg-linear-to-r from-yellow-400 to-orange-500 text-white font-black px-8 py-4 rounded-3xl shadow-2xl text-center border-4 border-white/20">

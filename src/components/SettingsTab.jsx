@@ -6,6 +6,8 @@ export default function SettingsTab({
   setTheme,
   notificationsEnabled,
   toggleNotifications,
+  testNotification,
+  simulateReminder,
   onReset,
 }) {
   return (
@@ -44,10 +46,24 @@ export default function SettingsTab({
             />
           </button>
         </div>
-        <p className={`${th.sub} text-[10px] font-medium leading-relaxed`}>
+        <p className={`${th.sub} text-[10px] font-medium leading-relaxed mb-3`}>
           Receive a reminder 1 hour before midnight if you have uncompleted
           daily tasks or challenges.
         </p>
+        <div className="flex gap-2">
+          <button
+            onClick={testNotification}
+            className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${th.border} hover:bg-white/5 flex items-center justify-center gap-2`}
+          >
+            <span>⚡</span> Test
+          </button>
+          <button
+            onClick={simulateReminder}
+            className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${th.border} hover:bg-white/5 flex items-center justify-center gap-2`}
+          >
+            <span>⏳</span> Simulate 11PM
+          </button>
+        </div>
       </div>
       <div
         className={`glass-dark rounded-2xl p-5 border ${th.border} shadow-premium bg-red-500/10`}

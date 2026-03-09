@@ -43,7 +43,9 @@ export default function TasksTab({
                   className={`flex items-center gap-2 p-2.5 rounded-xl transition-all cursor-pointer select-none glass hover:bg-white/10 active:scale-[0.98] border-glow`}
                 >
                   <div className="w-5 h-5 rounded-full border-2 border-gray-500 flex items-center justify-center shrink-0" />
-                  <span className="text-lg">{task.icon}</span>
+                  <div className="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-1.5 py-0.5 rounded-lg shrink-0 tabular-nums shadow-sm border border-indigo-500/20">
+                    {task.time || "00:00"}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium">{task.label}</div>
                     {task.days && task.days.length < 7 && (
@@ -120,7 +122,9 @@ export default function TasksTab({
                       />
                     </svg>
                   </div>
-                  <span className="text-lg grayscale">{task.icon}</span>
+                  <div className="text-[10px] font-bold text-gray-500 bg-gray-500/10 px-1.5 py-0.5 rounded-lg shrink-0 tabular-nums line-through opacity-60">
+                    {task.time || "00:00"}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium line-through decoration-2 opacity-60">
                       {task.label}
@@ -149,50 +153,65 @@ export default function TasksTab({
         <div className={`mt-3 ${th.card} rounded-2xl p-4 border ${th.border}`}>
           <h3 className="font-semibold mb-3 text-sm">New Task</h3>
           <input
-            className={`w-full ${th.inner} rounded-xl px-3 py-2 text-sm mb-2 outline-none`}
+            className={`w-full ${th.inner} rounded-xl px-3 py-2 text-sm mb-3 outline-none`}
             placeholder="Task name..."
             value={newTask.label}
             onChange={(e) =>
               setNewTask((n) => ({ ...n, label: e.target.value }))
             }
           />
-          <div className="flex gap-2 mb-2">
-            <input
-              className={`w-14 ${th.inner} rounded-xl px-2 py-2 text-sm text-center outline-none`}
-              placeholder="Icon"
-              value={newTask.icon}
-              onChange={(e) =>
-                setNewTask((n) => ({ ...n, icon: e.target.value }))
-              }
-            />
-            <select
-              className={`flex-1 ${th.inner} rounded-xl px-2 py-2 text-sm outline-none`}
-              value={newTask.category}
-              onChange={(e) =>
-                setNewTask((n) => ({ ...n, category: e.target.value }))
-              }
-            >
-              {["morning", "afternoon", "evening"].map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-            <select
-              className={`flex-1 ${th.inner} rounded-xl px-2 py-2 text-sm outline-none`}
-              value={newTask.difficulty}
-              onChange={(e) =>
-                setNewTask((n) => ({ ...n, difficulty: e.target.value }))
-              }
-            >
-              {["easy", "medium", "hard"].map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
+          <div className="flex gap-2 mb-3">
+            <div className="flex-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 mb-1 block">
+                Reminder Time
+              </label>
+              <input
+                type="time"
+                className={`w-full ${th.inner} rounded-xl px-3 py-2 text-sm outline-none font-medium tabular-nums`}
+                value={newTask.time}
+                onChange={(e) =>
+                  setNewTask((n) => ({ ...n, time: e.target.value }))
+                }
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 mb-1 block">
+                Category
+              </label>
+              <select
+                className={`w-full ${th.inner} rounded-xl px-2 py-2 text-sm outline-none h-9`}
+                value={newTask.category}
+                onChange={(e) =>
+                  setNewTask((n) => ({ ...n, category: e.target.value }))
+                }
+              >
+                {["morning", "afternoon", "evening"].map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 mb-1 block">
+                Difficulty
+              </label>
+              <select
+                className={`w-full ${th.inner} rounded-xl px-2 py-2 text-sm outline-none h-9`}
+                value={newTask.difficulty}
+                onChange={(e) =>
+                  setNewTask((n) => ({ ...n, difficulty: e.target.value }))
+                }
+              >
+                {["easy", "medium", "hard"].map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-1 mb-3">
+          <div className="flex flex-wrap gap-1 mb-4">
             {[0, 1, 2, 3, 4, 5, 6].map((d) => {
               const active = (newTask.days || [0, 1, 2, 3, 4, 5, 6]).includes(
                 d,
@@ -207,7 +226,7 @@ export default function TasksTab({
                       : [...currentDays, d];
                     setNewTask((n) => ({ ...n, days: nextDays }));
                   }}
-                  className={`flex-1 py-1 rounded-lg text-[10px] font-bold transition-all ${active ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-500"}`}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${active ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-500 border border-gray-700/50"}`}
                 >
                   {DAYS_SHORT[d]}
                 </button>
@@ -223,7 +242,7 @@ export default function TasksTab({
             </button>
             <button
               onClick={() => setShowAdd(false)}
-              className="flex-1 bg-gray-700 py-2 rounded-xl text-sm font-semibold"
+              className="flex-1 bg-gray-700 py-2.5 rounded-xl text-sm font-semibold"
             >
               Cancel
             </button>
