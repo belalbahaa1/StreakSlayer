@@ -19,6 +19,14 @@ export default function TasksTab({
   setNewTask,
   addTask,
 }) {
+  const getCategoryFromTime = (time) => {
+    if (!time) return "morning";
+    const hour = parseInt(time.split(":")[0]);
+    if (hour >= 5 && hour < 12) return "morning";
+    if (hour >= 12 && hour < 17) return "afternoon";
+    return "evening";
+  };
+
   return (
     <>
       {["morning", "afternoon", "evening"].map((cat) => {
@@ -169,28 +177,26 @@ export default function TasksTab({
                 type="time"
                 className={`w-full ${th.inner} rounded-xl px-3 py-2 text-sm outline-none font-medium tabular-nums`}
                 value={newTask.time}
-                onChange={(e) =>
-                  setNewTask((n) => ({ ...n, time: e.target.value }))
-                }
+                onChange={(e) => {
+                  const newTime = e.target.value;
+                  const newCat = getCategoryFromTime(newTime);
+                  setNewTask((n) => ({
+                    ...n,
+                    time: newTime,
+                    category: newCat,
+                  }));
+                }}
               />
             </div>
             <div className="flex-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 mb-1 block">
-                Category
+              <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1 block">
+                Category (Auto)
               </label>
-              <select
-                className={`w-full ${th.inner} rounded-xl px-2 py-2 text-sm outline-none h-9`}
-                value={newTask.category}
-                onChange={(e) =>
-                  setNewTask((n) => ({ ...n, category: e.target.value }))
-                }
+              <div
+                className={`w-full ${th.inner} rounded-xl px-2 py-2 text-sm outline-none h-9 flex items-center justify-center font-bold capitalize text-indigo-400 border border-indigo-500/20 shadow-sm`}
               >
-                {["morning", "afternoon", "evening"].map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                {newTask.category}
+              </div>
             </div>
             <div className="flex-1">
               <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 mb-1 block">
